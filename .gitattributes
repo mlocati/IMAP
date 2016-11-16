@@ -1,2 +1,2 @@
 /.* export-ignore
-/README.md
+/README.md export-ignore
