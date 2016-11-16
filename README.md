@@ -7,6 +7,19 @@
 - Decode all character sets to UTF-8 (for instance from Latin1).
 - Works with PHP 5.3+
 
+## Install
+
+### With composer
+
+`composer require mlocati/imap`
+
+### Without composer
+
+```php
+<?php
+
+require_once 'autoload.php';
+```
 
 ## Sample usage
 
