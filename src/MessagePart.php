@@ -183,6 +183,16 @@ abstract class MessagePart
     abstract public function getAllParts();
 
     /**
+     * Get the child parts of this part.
+     *
+     * @return MessagePart[]
+     */
+    public function getParts()
+    {
+        return $this->childParts;
+    }
+
+    /**
      * Determine the body identifier.
      *
      * @param int[] $bodyPath The path to the body of this part
@@ -385,7 +395,7 @@ abstract class MessagePart
      */
     public function getDescription()
     {
-        return $this->$description;
+        return $this->description;
     }
 
     /**

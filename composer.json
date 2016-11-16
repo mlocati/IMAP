@@ -1,0 +1,37 @@
+{
+	"name": "mlocati/imap",
+	"description": "A PHP library to fetch IMAP messages",
+	"keywords": [
+		"imap",
+		"mail",
+		"email",
+		"message",
+		"messages",
+		"mailbox",
+		"mailboxes",
+		"tls",
+		"ssl",
+		"base64"
+	],
+	"homepage": "https://github.com/mlocati/imap",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Michele Locati",
+			"email": "mlocati@gmail.com",
+			"role": "Developer"
+		}
+	],
+	"support": {
+		"issues": "https://github.com/mlocati/imap/issues",
+		"source": "https://github.com/mlocati/imap"
+	},
+	"require": {
+		"php": ">=5.3"
+	},
+	"autoload": {
+		"psr-4": {
+			"MLocati\\IMAP\\": "src/"
+		}
+	}
+}

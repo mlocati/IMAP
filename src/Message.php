@@ -256,10 +256,23 @@ class Message
      */
     public function delete()
     {
-        if ($this->client->delete($this->number, true) !== true) {
+        if ($this->client->delete($this->number) !== true) {
             throw new Exception('Failed to delete message #'.$this->number);
         }
         $this->deleted = true;
+    }
+
+    /**
+     * Mark this message as not deleted.
+     *
+     * @throws Exception
+     */
+    public function undelete()
+    {
+        if ($this->client->undelete($this->number) !== true) {
+            throw new Exception('Failed to delete message #'.$this->number);
+        }
+        $this->deleted = false;
     }
 
     /**
