@@ -119,7 +119,7 @@ class Client
      */
     public function expunge()
     {
-        if ($this->call('expunge') !== true) {
+        if ($this->callIMAP('expunge') !== true) {
             throw new Exception('Failed to expunge mailbox');
         }
     }
