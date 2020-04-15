@@ -85,7 +85,7 @@ class Message
      * Initializes the instance.
      *
      * @param Client $client The parent connection to the user's mailbox
-     * @param stdClass $info The message info retrieved by imap_fetch_overview
+     * @param \stdClass $info The message info retrieved by imap_fetch_overview
      *
      * @throws Exception
      */

@@ -150,7 +150,7 @@ abstract class MessagePart
      * Initializes the instance.
      *
      * @param Message $message The message that contains this part
-     * @param stdClass $part The part info retrieved by imap_fetchstructure
+     * @param \stdClass $part The part info retrieved by imap_fetchstructure
      * @param int[] $bodyPath The path to the body of this part
      */
     protected function initialize(Message $message, $part, array $bodyPath)
@@ -211,7 +211,7 @@ abstract class MessagePart
     /**
      * Determine the mainType/subType/fullType fields.
      *
-     * @param stdClass $part The part info retrieved by imap_fetchstructure
+     * @param \stdClass $part The part info retrieved by imap_fetchstructure
      */
     private function determineType($part)
     {
@@ -264,7 +264,7 @@ abstract class MessagePart
     /**
      * Determine the name and original character set by reading the part parameters.
      *
-     * @param stdClass $part The part info retrieved by imap_fetchstructure
+     * @param \stdClass $part The part info retrieved by imap_fetchstructure
      */
     private function parsePartParameters($part)
     {
@@ -294,7 +294,7 @@ abstract class MessagePart
     /**
      * Determine the disposition name by reading the part D parameters.
      *
-     * @param stdClass $part The part info retrieved by imap_fetchstructure
+     * @param \stdClass $part The part info retrieved by imap_fetchstructure
      */
     private function parsePartDParameters($part)
     {
@@ -315,7 +315,7 @@ abstract class MessagePart
     /**
      * Read the child parts.
      *
-     * @param stdClass $part The part info retrieved by imap_fetchstructure
+     * @param \stdClass $part The part info retrieved by imap_fetchstructure
      * @param int[] $bodyPath The path to the body of this part
      */
     private function readChildren($part, array $bodyPath)

@@ -9,7 +9,7 @@ class Exception extends PHPException
     /**
      * @param string|null $message
      * @param int|null $code
-     * @param unknown $previous
+     * @param mixed $previous
      */
     public function __construct($message = null, $code = null, $previous = null)
     {
