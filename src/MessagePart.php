@@ -281,7 +281,7 @@ abstract class MessagePart
                             $this->name = Convert::mimeEncodedToUTF8((string) $parameter->value);
                         }
                         break;
-                    case 'originalCharset':
+                    case 'charset':
                         if (($this->originalCharset === '') && isset($parameter->value)) {
                             $this->originalCharset = strtoupper((string) $parameter->value);
                         }
