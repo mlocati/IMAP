@@ -67,7 +67,7 @@ class Convert
                 case 'CSISOLATIN1':
                 case 'IBM819':
                 case 'CP819':
-                    $decoded = @utf8_encode($contents);
+                    $decoded = @utf8_encode($text);
                     if (is_string($decoded) && $decoded !== '') {
                         return $decoded;
                     }
