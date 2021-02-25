@@ -27,7 +27,8 @@
 		"source": "https://github.com/mlocati/imap"
 	},
 	"require": {
-		"php": ">=5.3"
+		"php": ">=5.3",
+        "ext-imap": "*"
 	},
 	"autoload": {
 		"psr-4": {
