@@ -176,6 +176,16 @@ abstract class MessagePart
     }
 
     /**
+     * Get the message owning this part.
+     *
+     * @return \MLocati\IMAP\Message
+     */
+    public function getMessage()
+    {
+        return $this->message;
+    }
+
+    /**
      * Get all the parts.
      *
      * @return MessagePart[]
