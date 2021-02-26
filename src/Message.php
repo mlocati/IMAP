@@ -82,6 +82,13 @@ class Message
     protected $source = null;
 
     /**
+     * The result of imap_headerinfo()
+     *
+     * @var \stdClass|null
+     */
+    private $headerInfo = null;
+
+    /**
      * Initializes the instance.
      *
      * @param Client $client The parent connection to the user's mailbox
@@ -158,6 +165,18 @@ class Message
     }
 
     /**
+     * Get the list of the sender email addresses (without name)
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string[]
+     */
+    public function getFromAddresses()
+    {
+        return $this->getAddresses('from');
+    }
+
+    /**
      * Get the value of the "To" header.
      *
      * @return string
@@ -165,6 +184,70 @@ class Message
     public function getTo()
     {
         return $this->to;
+    }
+
+    /**
+     * Get the list of the "To" email addresses (without name)
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string[]
+     */
+    public function getToAddresses()
+    {
+        return $this->getAddresses('to');
+    }
+
+    /**
+     * Get the value of the "CC" header.
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string
+     */
+    public function getCc()
+    {
+        $headerInfo = $this->getHeaderInfo();
+
+        return isset($headerInfo->ccaddress) ? $headerInfo->ccaddress : '';
+    }
+
+    /**
+     * Get the list of the "CC" email addresses (without name)
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string[]
+     */
+    public function getCcAddresses()
+    {
+        return $this->getAddresses('cc');
+    }
+
+    /**
+     * Get the value of the "BCC" header.
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string
+     */
+    public function getBcc()
+    {
+        $headerInfo = $this->getHeaderInfo();
+
+        return isset($headerInfo->bccaddress) ? $headerInfo->bccaddress : '';
+    }
+
+    /**
+     * Get the list of the "BCC" email addresses (without name)
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string[]
+     */
+    public function getBccAddresses()
+    {
+        return $this->getAddresses('bcc');
     }
 
     /**
@@ -300,5 +383,68 @@ class Message
             throw new Exception('Failed to undelete message #'.$this->number);
         }
         $this->deleted = false;
+    }
+
+    /**
+     * Get the header info.
+     *
+     * @param bool $forceRefresh
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return \stdClass
+     */
+    protected function getHeaderInfo($forceRefresh = false)
+    {
+        if ($this->headerInfo === null || $forceRefresh) {
+            $headerInfo = $this->client->headerinfo($this->number);
+            if (!$headerInfo) {
+                throw new Exception('Failed to fetch header info of message #'.$this->number);
+            }
+            $this->headerInfo = $headerInfo;
+        }
+
+        return $this->headerInfo;
+    }
+
+    /**
+     * Extract the email addresses from the header info.
+     *
+     * @param string $field
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string[]
+     */
+    protected function getAddresses($field)
+    {
+        $headerInfo = $this->getHeaderInfo();
+        $value = isset($headerInfo->$field) ? $headerInfo->$field : null;
+        if (!is_array($value)) {
+            return array();
+        }
+        $result = array();
+        foreach ($value as $item) {
+            if(!is_object($item)) {
+                continue;
+            }
+            if (!isset($item->mailbox) || !is_string($item->mailbox)) {
+                continue;
+            }
+            $mailbox = trim($item->mailbox);
+            if ($mailbox === '') {
+                continue;
+            }
+            if (!isset($item->host) || !is_string($item->host)) {
+                continue;
+            }
+            $host = trim($item->host);
+            if ($host === '') {
+                continue;
+            }
+            $result[] = "{$mailbox}@{$host}";
+        }
+
+        return $result;
     }
 }
