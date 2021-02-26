@@ -30,7 +30,7 @@ class Client
      * @param array $flags An array of flags (or a string of slash-separated flags). See http://www.php.net/manual/en/function.imap-open.php#refsect1-function.imap-open-parameters
      * @param int|null $port The port to connect to (defaults to 993 for ssl connections and to 143 for non-ssl connections)
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      */
     public function __construct($username, $password, $server, $flags = array(), $port = null)
     {
@@ -67,6 +67,37 @@ class Client
     }
 
     /**
+     * List all the folders under a specific folder.
+     *
+     * @param string $parentFolder The path of the parent folder (level separator must be '/')
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string[]
+     */
+    public function listFolders($parentFolder = '')
+    {
+        $parentFolder = trim($parentFolder, '/');
+        $pattern = $parentFolder === '' ? '/*' : "/{$parentFolder}/*";
+        $list = $this->callIMAP('list', [$this->server, $pattern]);
+        if ($list === false) {
+            throw new Exception('Failed to list folders');
+        }
+        $result = [];
+        foreach ($list as $item) {
+            if ($item[0] === '{') {
+                $p = strpos($item, '}');
+                if ($p !== false) {
+                    $item = substr($item, $p + 1);
+                }
+            }
+            $result[] = $item;
+        }
+
+        return $result;
+    }
+    
+    /**
      * Close the connection to the server.
      */
     public function __destruct()
@@ -83,7 +114,7 @@ class Client
      *
      * @param bool $includeMarkedAsDeleted true to retrieve the messages marked for deletion too, false to retrieve only normal messages
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      *
      * @return Message[]
      */
@@ -115,7 +146,7 @@ class Client
     /**
      * Delete all messages marked for deletion.
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      */
     public function expunge()
     {

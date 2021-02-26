@@ -87,7 +87,7 @@ class Message
      * @param Client $client The parent connection to the user's mailbox
      * @param \stdClass $info The message info retrieved by imap_fetch_overview
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      */
     public function __construct(Client $client, $info)
     {
@@ -200,7 +200,7 @@ class Message
     /**
      * Get the root message part.
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      *
      * @return RootMessagePart
      */
@@ -220,7 +220,7 @@ class Message
     /**
      * Get all the message parts.
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      *
      * @return MessagePart[]
      */
@@ -232,7 +232,7 @@ class Message
     /**
      * Retrieve the whole message source.
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      *
      * @return string
      */
@@ -250,9 +250,23 @@ class Message
     }
 
     /**
+     * Move this message to a specific folder.
+     *
+     * @param string $folder level separator must be '/'
+     *
+     * @throws \MLocati\IMAP\Exception
+     */
+    public function moveToFolder($folder)
+    {
+        if (!$this->client->mail_move($this->getNumber(), $folder)) {
+            throw new Exception("Failed to move the message to {$folder}");
+        }
+    }
+
+    /**
      * Mark this message as deleted.
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      */
     public function delete()
     {
@@ -265,7 +279,7 @@ class Message
     /**
      * Mark this message as not deleted.
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      */
     public function undelete()
     {
@@ -278,7 +292,7 @@ class Message
     /**
      * Mark this message as not deleted.
      *
-     * @throws Exception
+     * @throws \MLocati\IMAP\Exception
      */
     public function restore()
     {
