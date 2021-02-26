@@ -83,7 +83,7 @@ class Client
         if ($list === false) {
             throw new Exception('Failed to list folders');
         }
-        $result = [];
+        $result = array();
         foreach ($list as $item) {
             if ($item[0] === '{') {
                 $p = strpos($item, '}');
