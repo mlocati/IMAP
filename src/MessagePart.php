@@ -2,6 +2,9 @@
 
 namespace MLocati\IMAP;
 
+use Exception;
+use Throwable;
+
 /**
  * Represents a message part.
  */
@@ -450,12 +453,16 @@ abstract class MessagePart
                     unset($decoded);
                 }
                 if ($this->originalCharset !== '') {
-                    $decoded = Convert::charsetToUtf8($this->originalCharset, $contents);
-                    if ($decoded === false) {
-                        throw new Exception('Unable to decode from charset '.$this->originalCharset);
+                    try {
+                        $decoded = Convert::charsetToUtf8($this->originalCharset, $contents);
+                    } catch (Exception $x) {
+                        $decoded = false;
+                    } catch (Throwable $x) {
+                        $decoded = false;
                     }
-                    $contents = $decoded;
-                    unset($decoded);
+                    if ($decoded !== false) {
+                        $contents = $decoded;
+                    }
                 }
             }
             $this->contents = $contents;
