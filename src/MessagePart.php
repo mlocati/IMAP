@@ -452,7 +452,7 @@ abstract class MessagePart
                     $contents = $decoded;
                     unset($decoded);
                 }
-                if ($this->originalCharset !== '') {
+                if ($this->originalCharset !== '' && !preg_match('/^UTF-?8$/i', $this->originalCharset)) {
                     try {
                         $decoded = Convert::charsetToUtf8($this->originalCharset, $contents);
                     } catch (Exception $x) {
