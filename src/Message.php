@@ -40,13 +40,6 @@ class Message
     protected $from;
 
     /**
-     * The value of the "To" header.
-     *
-     * @var string
-     */
-    protected $to;
-
-    /**
      * The email message ID.
      *
      * @var string
@@ -72,21 +65,21 @@ class Message
      *
      * @var RootMessagePart|null
      */
-    protected $rootPart = null;
+    protected $rootPart;
 
     /**
      * The whole message source (if already loaded).
      *
      * @var string|null
      */
-    protected $source = null;
+    protected $source;
 
     /**
-     * The result of imap_headerinfo()
+     * The raw message headers.
      *
-     * @var \stdClass|null
+     * @var string[]|null
      */
-    private $headerInfo = null;
+    private $rawHeaders;
 
     /**
      * Initializes the instance.
@@ -100,7 +93,6 @@ class Message
     {
         $this->client = $client;
         $this->subject = isset($info->subject) ? Convert::mimeEncodedToUTF8($info->subject) : '';
-        $this->date = null;
         if (isset($info->udate) && is_int($info->udate) && $info->udate > 0) {
             $this->date = new DateTime();
             $this->date->setTimestamp($info->udate);
@@ -114,7 +106,6 @@ class Message
             }
         }
         $this->from = isset($info->from) ? Convert::mimeEncodedToUTF8($info->from) : '';
-        $this->to = isset($info->to) ? Convert::mimeEncodedToUTF8($info->to) : '';
         $this->id = isset($info->message_id) ? Convert::mimeEncodedToUTF8($info->message_id) : '';
         $s = (isset($info->msgno) && is_int($info->msgno)) ? $info->msgno : 0;
         if ($s <= 0) {
@@ -183,7 +174,9 @@ class Message
      */
     public function getTo()
     {
-        return $this->to;
+        $headers = $this->getRawHeaderValues('to', true);
+        
+        return $headers === array() ? '' : array_shift($headers);
     }
 
     /**
@@ -207,9 +200,9 @@ class Message
      */
     public function getCc()
     {
-        $headerInfo = $this->getHeaderInfo();
+        $headers = $this->getRawHeaderValues('cc', true);
 
-        return isset($headerInfo->ccaddress) ? $headerInfo->ccaddress : '';
+        return $headers === array() ? '' : array_shift($headers);
     }
 
     /**
@@ -233,9 +226,9 @@ class Message
      */
     public function getBcc()
     {
-        $headerInfo = $this->getHeaderInfo();
-
-        return isset($headerInfo->bccaddress) ? $headerInfo->bccaddress : '';
+        $headers = $this->getRawHeaderValues('bcc', true);
+        
+        return $headers === array() ? '' : array_shift($headers);
     }
 
     /**
@@ -386,25 +379,52 @@ class Message
     }
 
     /**
-     * Get the header info.
+     * Get the raw message headers.
      *
      * @param bool $forceRefresh
      *
      * @throws \MLocati\IMAP\Exception
      *
-     * @return \stdClass
+     * @return string[]
      */
-    protected function getHeaderInfo($forceRefresh = false)
+    protected function getRawHeaders($forceRefresh = false)
     {
-        if ($this->headerInfo === null || $forceRefresh) {
-            $headerInfo = $this->client->headerinfo($this->number);
-            if (!$headerInfo) {
-                throw new Exception('Failed to fetch header info of message #'.$this->number);
+        if ($this->rawHeaders === null || $forceRefresh) {
+            $rawHeaders = $this->client->fetchheader($this->number);
+            if (!$rawHeaders) {
+                throw new Exception('Failed to fetch headers of message #'.$this->number);
             }
-            $this->headerInfo = $headerInfo;
+            $rawHeaders = preg_split('/\r?\n/', $rawHeaders, -1, PREG_SPLIT_NO_EMPTY);
+            // https://datatracker.ietf.org/doc/html/rfc5322#section-2.2.3
+            for ($index = count($rawHeaders) - 1; $index > 0; $index--) {
+                if ($rawHeaders !== '' && ($rawHeaders[$index][0] === ' ' || $rawHeaders[$index][0] === "\t")) {
+                    $rawHeaders[$index - 1] .= $rawHeaders[$index];
+                    array_splice($rawHeaders, $index, 1);
+                }
+            }
+            $this->rawHeaders = $rawHeaders;
         }
 
-        return $this->headerInfo;
+        return $this->rawHeaders;
+    }
+
+    /**
+     * Get the raw values of a specific header.
+     * 
+     * @param string $field
+     */
+    protected function getRawHeaderValues($field, $trim = false)
+    {
+        $result = array();
+        $m = null;
+        $rxMatch = '/^' . preg_quote($field, '/') . ':(.*)$/i';
+        foreach ($this->getRawHeaders() as $rawHeader) {
+            if (preg_match($rxMatch, $rawHeader, $m)) {
+                $result[] = $trim ? trim($m[1]) : $m[1];
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -418,31 +438,26 @@ class Message
      */
     protected function getAddresses($field)
     {
-        $headerInfo = $this->getHeaderInfo();
-        $value = isset($headerInfo->$field) ? $headerInfo->$field : null;
-        if (!is_array($value)) {
-            return array();
-        }
-        $result = array();
-        foreach ($value as $item) {
-            if(!is_object($item)) {
+        foreach ($this->getRawHeaderValues($field, true) as $value) {
+            if ($value === '') {
                 continue;
             }
-            if (!isset($item->mailbox) || !is_string($item->mailbox)) {
+            $addresses = imap_rfc822_parse_adrlist($value, '');
+            if (!is_array($addresses)) {
                 continue;
             }
-            $mailbox = trim($item->mailbox);
-            if ($mailbox === '') {
-                continue;
+            foreach ($addresses as $address) {
+                if (!is_object($address)) {
+                    continue;
+                }
+                if (!isset($address->mailbox) || !is_string($address->mailbox) || $address->mailbox === '') {
+                    continue;
+                }
+                if (!isset($address->host) || !is_string($address->host) || $address->host === '') {
+                    continue;
+                }
+                $result[] = $address->mailbox . '@' . $address->host;
             }
-            if (!isset($item->host) || !is_string($item->host)) {
-                continue;
-            }
-            $host = trim($item->host);
-            if ($host === '') {
-                continue;
-            }
-            $result[] = "{$mailbox}@{$host}";
         }
 
         return $result;
