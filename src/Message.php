@@ -438,6 +438,7 @@ class Message
      */
     protected function getAddresses($field)
     {
+        $result = array();
         foreach ($this->getRawHeaderValues($field, true) as $value) {
             if ($value === '') {
                 continue;
