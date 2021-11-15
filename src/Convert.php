@@ -115,6 +115,9 @@ class Convert
         }
         switch ($encoding) {
             case ENCBASE64:
+                if (trim($data) === '') {
+                    return '';
+                }
                 if (function_exists('base64_decode')) {
                     $decoded = @base64_decode($data);
                     if (is_string($decoded) && $decoded !== '') {
