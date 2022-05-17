@@ -175,7 +175,7 @@ class Message
     public function getTo()
     {
         $headers = $this->getRawHeaderValues('to', true);
-        
+
         return $headers === array() ? '' : array_shift($headers);
     }
 
@@ -227,7 +227,7 @@ class Message
     public function getBcc()
     {
         $headers = $this->getRawHeaderValues('bcc', true);
-        
+
         return $headers === array() ? '' : array_shift($headers);
     }
 
@@ -241,6 +241,32 @@ class Message
     public function getBccAddresses()
     {
         return $this->getAddresses('bcc');
+    }
+
+    /**
+     * Get the value of the "Reply-To" header.
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string
+     */
+    public function getReplyTo()
+    {
+        $headers = $this->getRawHeaderValues('reply-to', true);
+
+        return $headers === array() ? '' : array_shift($headers);
+    }
+
+    /**
+     * Get the list of the "Reply-To" email addresses (without name)
+     *
+     * @throws \MLocati\IMAP\Exception
+     *
+     * @return string[]
+     */
+    public function getReplyToAddresses()
+    {
+        return $this->getAddresses('reply-to');
     }
 
     /**
@@ -410,7 +436,7 @@ class Message
 
     /**
      * Get the raw values of a specific header.
-     * 
+     *
      * @param string $field
      */
     protected function getRawHeaderValues($field, $trim = false)
